@@ -61,6 +61,62 @@ defmodule Stripe.InvoiceTest do
     end
   end
 
+  describe "preview/1" do
+    test "previews an upcoming invoice for a customer" do
+      params = %{customer: "cus_123", subscription: "sub_123"}
+      assert {:ok, %Stripe.Invoice{}} = Stripe.Invoice.preview(params)
+
+      assert_stripe_requested(
+        :post,
+        "/v1/invoices/create_preview",
+        body: %{customer: "cus_123", subscription: "sub_123"}
+      )
+    end
+
+    test "previews an upcoming invoice for a subscription" do
+      params = %{subscription: "sub_123"}
+      assert {:ok, %Stripe.Invoice{}} = Stripe.Invoice.preview(params)
+      assert_stripe_requested(:post, "/v1/invoices/create_preview", body: %{subscription: "sub_123"})
+    end
+
+    test "previews an upcoming invoice for a customer with subscription items" do
+      params = %{
+        customer: "cus_123",
+        subscription_details: %{
+          items: [%{price: "price_gold", quantity: 2}]
+        }
+      }
+      assert {:ok, %Stripe.Invoice{}} = Stripe.Invoice.preview(params)
+
+      assert_stripe_requested(
+        :post,
+        "/v1/invoices/create_preview",
+        body: %{
+          :customer => "cus_123",
+          :"subscription_details[items][0][quantity]" => 2,
+          :"subscription_details[items][0][price]" => "price_gold"
+        }
+      )
+    end
+
+    test "previews with discounts" do
+      params = %{
+        customer: "cus_123",
+        discounts: [%{coupon: "TEST_COUPON"}]
+      }
+      assert {:ok, %Stripe.Invoice{}} = Stripe.Invoice.preview(params)
+
+      assert_stripe_requested(
+        :post,
+        "/v1/invoices/create_preview",
+        body: %{
+          :customer => "cus_123",
+          :"discounts[0][coupon]" => "TEST_COUPON"
+        }
+      )
+    end
+  end
+
   describe "update/2" do
     test "updates an invoice" do
       params = %{metadata: %{key: "value"}}

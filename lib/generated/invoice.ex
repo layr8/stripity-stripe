@@ -800,7 +800,52 @@ defmodule Stripe.Invoice do
   (
     nil
 
-    @doc "<p>When retrieving an upcoming invoice, you’ll get a <strong>lines</strong> property containing the total count of line items and the first handful of those items. There is also a URL where you can retrieve the full (paginated) list of line items.</p>\n\n#### Details\n\n * Method: `get`\n * Path: `/v1/invoices/upcoming/lines`\n"
+    @doc "<p>Preview the upcoming invoice for a customer using the newer Create Preview Invoice API.</p>\n\n<p>This endpoint replaces the deprecated <code>/v1/invoices/upcoming</code> endpoint. It provides the same functionality but uses a POST method and the <code>/v1/invoices/create_preview</code> endpoint.</p>\n\n<p>At any time, you can preview the upcoming invoice for a customer. This will show you all the charges that are pending, including subscription renewal charges, invoice item charges, etc. It will also show you any discounts that are applicable to the invoice.</p>\n\n<p>Note that when you are viewing a preview invoice, you are simply viewing a preview – the invoice has not yet been created. As such, the preview invoice will not show up in invoice listing calls, and you cannot use the API to pay or edit the invoice. If you want to change the amount that your customer will be billed, you can add, remove, or update pending invoice items, or update the customer's discount.</p>\n\n<p>You can preview the effects of updating a subscription, including a preview of what proration will take place. To ensure that the actual proration is calculated exactly the same as the previewed proration, you should pass a <code>proration_date</code> parameter when doing the actual subscription update. The value passed in should be the same as the <code>subscription_proration_date</code> returned on the upcoming invoice resource. The recommended way to get only the prorations being previewed is to consider only proration line items where <code>period[start]</code> is equal to the <code>subscription_proration_date</code> on the upcoming invoice resource.</p>\n\n#### Details\n\n * Method: `post`\n * Path: `/v1/invoices/create_preview`\n"
+    (
+      @spec preview(
+              params :: %{
+                optional(:automatic_tax) => automatic_tax,
+                optional(:coupon) => binary,
+                optional(:currency) => binary,
+                optional(:customer) => binary,
+                optional(:customer_details) => customer_details,
+                optional(:discounts) => list(discounts) | binary,
+                optional(:expand) => list(binary),
+                optional(:invoice_items) => list(invoice_items),
+                optional(:schedule) => binary,
+                optional(:subscription) => binary,
+                optional(:subscription_billing_cycle_anchor) => (:now | :unchanged) | integer,
+                optional(:subscription_cancel_at) => integer | binary,
+                optional(:subscription_cancel_at_period_end) => boolean,
+                optional(:subscription_cancel_now) => boolean,
+                optional(:subscription_default_tax_rates) => list(binary) | binary,
+                optional(:subscription_items) => list(subscription_items),
+                optional(:subscription_proration_behavior) =>
+                  :always_invoice | :create_prorations | :none,
+                optional(:subscription_proration_date) => integer,
+                optional(:subscription_resume_at) => :now,
+                optional(:subscription_start_date) => integer,
+                optional(:subscription_trial_end) => :now | integer,
+                optional(:subscription_trial_from_plan) => boolean
+              },
+              opts :: Keyword.t()
+            ) :: {:ok, Stripe.Invoice.t()} | {:error, Stripe.ApiErrors.t()} | {:error, term()}
+      def preview(params \\ %{}, opts \\ []) do
+        path = Stripe.OpenApi.Path.replace_path_params("/v1/invoices/create_preview", [], [])
+
+        Stripe.Request.new_request(opts)
+        |> Stripe.Request.put_endpoint(path)
+        |> Stripe.Request.put_params(params)
+        |> Stripe.Request.put_method(:post)
+        |> Stripe.Request.make_request()
+      end
+    )
+  )
+
+  (
+    nil
+
+    @doc "<p>When retrieving an upcoming invoice, you'll get a <strong>lines</strong> property containing the total count of line items and the first handful of those items. There is also a URL where you can retrieve the full (paginated) list of line items.</p>\n\n#### Details\n\n * Method: `get`\n * Path: `/v1/invoices/upcoming/lines`\n"
     (
       @spec upcoming_lines(
               params :: %{
